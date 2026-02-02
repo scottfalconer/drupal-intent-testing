@@ -70,32 +70,57 @@ This repo is built around a **tight feedback loop** where the agent explores, ca
 4. **Checkpoint** (snapshot + screenshot + console/errors).
 5. **Decide** next step based on evidence.
 
+### One-line request (agent writes the test for you)
+
+If you say “test with drupal-intent-testing,” the agent should **author the verification artifact itself** (scenario or manifest) from your intent, then run it.
+
+Example prompt you can paste into Claude Code or Codex:
+
+```text
+Make this change and test it with drupal-intent-testing. You must define the test artifact yourself.
+
+Change: After saving the layout, the Hero component should render on the LEFT side of the screen.
+Base URL: https://SITE
+Credentials: DRUPAL_TEST_USER / DRUPAL_TEST_PASS are set (safe to mutate).
+Component selector: [data-testid="hero"] (use if present; otherwise find a reliable selector).
+Success criteria: after the change, the component's bounding rect is in the left half of the viewport.
+```
+
+The agent should then:
+- infer the intent,
+- generate a scenario script or manifest,
+- run baseline/modified (if applicable),
+- and report evidence + verdict.
+
 ### Example: “Does this result in a component ending up on the left of the screen?”
 
 Because `agent-browser` is accessibility-tree driven (no vision model), you verify layout by **capturing layout metrics** with `eval` and storing them as evidence.
 
-#### In Claude Code or Codex, run an interactive loop
+#### Example prompt you can paste into Claude Code or Codex
 
-```bash
-# 1) Open the page and stabilize
-agent-browser open "https://SITE/node/123"
-agent-browser wait --load networkidle
+```text
+Goal: Verify whether the target component ends up on the left side of the screen after I perform the layout change.
 
-# 2) Capture a checkpoint for evidence
-agent-browser screenshot test_outputs/01_before.png
-agent-browser snapshot -i -c --json > test_outputs/01_before.snapshot.json
+Context:
+- Site URL: https://SITE/node/123
+- The component has selector: [data-testid="hero"] (adjust if needed)
+- Use agent-browser commands only.
 
-# 3) Perform the action that should move the component
-# (Example: toggle a layout setting or move a block)
-agent-browser find role button click --name "Move Left"
-agent-browser wait --load networkidle
-
-# 4) Compute layout position via DOM eval (left half of viewport?)
-agent-browser eval --json "(() => {const el = document.querySelector('[data-testid=\"hero\"]'); if (!el) return {found:false}; const r = el.getBoundingClientRect(); return {found:true, left:r.left, right:r.right, width:r.width, viewport:window.innerWidth, is_left: r.left < (window.innerWidth/2)};})()"
-
-# 5) Capture after evidence
-agent-browser screenshot test_outputs/02_after.png
-agent-browser snapshot -i -c --json > test_outputs/02_after.snapshot.json
+Instructions:
+1) Open the page and wait for network idle.
+2) Capture a “before” screenshot and snapshot in test_outputs/.
+3) Perform the UI action that should move the component to the left (use semantic locators).
+4) Wait for network idle.
+5) Run a DOM eval that returns bounding client rect + whether it is on the left half of the viewport.
+   Use this eval (or equivalent):
+   (() => {
+     const el = document.querySelector('[data-testid="hero"]');
+     if (!el) return {found:false};
+     const r = el.getBoundingClientRect();
+     return {found:true, left:r.left, right:r.right, width:r.width, viewport:window.innerWidth, is_left: r.left < (window.innerWidth/2)};
+   })()
+6) Capture an “after” screenshot and snapshot in test_outputs/.
+7) Summarize: report is_left, bounding rect values, and any console/Drupal errors.
 ```
 
 Interpretation:

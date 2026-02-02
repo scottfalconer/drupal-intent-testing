@@ -161,6 +161,8 @@ Your job is not “make tests pass.” Your job is:
   - Actually does the thing the user wanted
 - If you can’t verify confidently, escalate with excellent evidence and a specific question
 
+Default behavior: if the user says “test with drupal-intent-testing” and does not provide a scenario/manifest, you must **author the verification artifact yourself** from the intent and run it. Do not ask for a script unless you are blocked on missing environment details (base URL, credentials, or success criteria).
+
 ### 1) Inputs you start from
 
 You will be given at least:
