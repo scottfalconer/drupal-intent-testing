@@ -60,6 +60,62 @@ agent-run skills/basic_content.agent
 agent-run skills/canvas_ai_context.agent
 ```
 
+## 🔁 Agent-in-the-Loop Workflow (Claude Code / Codex)
+
+This repo is built around a **tight feedback loop** where the agent explores, captures evidence, and you (or the agent) decide the next step. A typical loop looks like:
+
+1. **Snapshot** the current UI (accessibility tree).
+2. **Act** (click, fill, navigate).
+3. **Wait** for UI stability.
+4. **Checkpoint** (snapshot + screenshot + console/errors).
+5. **Decide** next step based on evidence.
+
+### Example: “Does this result in a component ending up on the left of the screen?”
+
+Because `agent-browser` is accessibility-tree driven (no vision model), you verify layout by **capturing layout metrics** with `eval` and storing them as evidence.
+
+#### In Claude Code or Codex, run an interactive loop
+
+```bash
+# 1) Open the page and stabilize
+agent-browser open "https://SITE/node/123"
+agent-browser wait --load networkidle
+
+# 2) Capture a checkpoint for evidence
+agent-browser screenshot test_outputs/01_before.png
+agent-browser snapshot -i -c --json > test_outputs/01_before.snapshot.json
+
+# 3) Perform the action that should move the component
+# (Example: toggle a layout setting or move a block)
+agent-browser find role button click --name "Move Left"
+agent-browser wait --load networkidle
+
+# 4) Compute layout position via DOM eval (left half of viewport?)
+agent-browser eval --json "(() => {const el = document.querySelector('[data-testid=\"hero\"]'); if (!el) return {found:false}; const r = el.getBoundingClientRect(); return {found:true, left:r.left, right:r.right, width:r.width, viewport:window.innerWidth, is_left: r.left < (window.innerWidth/2)};})()"
+
+# 5) Capture after evidence
+agent-browser screenshot test_outputs/02_after.png
+agent-browser snapshot -i -c --json > test_outputs/02_after.snapshot.json
+```
+
+Interpretation:
+* `is_left: true` means the component’s left edge is in the left half of the viewport.
+* You can tighten this check (e.g., `r.right <= window.innerWidth/2`) depending on the layout.
+
+#### If you want a repeatable script
+
+Create a scenario script (e.g., `scripts/test_scenarios/left_layout_check.txt`) and run compare mode:
+
+```bash
+python3 scripts/compare_runs.py \\
+  --url "https://SITE" \\
+  --script scripts/test_scenarios/left_layout_check.txt \\
+  --output-dir test_outputs \\
+  --between-cmd "ddev snapshot restore intent-baseline"
+```
+
+This generates a **baseline vs modified** report with snapshots, screenshots, and any `eval` payloads you record.
+
 ## ⚠️ Safety & Developer Notes
 
 Exploratory testing is destructive by nature.
