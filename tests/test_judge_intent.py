@@ -23,7 +23,7 @@ class JudgeIntentTests(unittest.TestCase):
 
     def test_text_absent_final_answer(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            cp = self._ai_checkpoint(tmp, final_answer="Use Legal Tone", tool_payload='{"tone": "hg:legal"}')
+            cp = self._ai_checkpoint(tmp, final_answer="Use Test Label", tool_payload='{"tone": "hg:legal"}')
             run = {"checkpoints": [cp]}
             manifest = {
                 "assertions": [
@@ -42,7 +42,7 @@ class JudgeIntentTests(unittest.TestCase):
 
     def test_text_present_final_answer(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            cp = self._ai_checkpoint(tmp, final_answer="Legal Tone enabled", tool_payload="")
+            cp = self._ai_checkpoint(tmp, final_answer="Test Label enabled", tool_payload="")
             run = {"checkpoints": [cp]}
             manifest = {
                 "assertions": [
@@ -50,7 +50,7 @@ class JudgeIntentTests(unittest.TestCase):
                         "id": "has_label",
                         "type": "text_present",
                         "scope": "final_answer",
-                        "patterns": ["Legal Tone"],
+                        "patterns": ["Test Label"],
                         "severity": "fail",
                         "checkpoint": "after",
                     }

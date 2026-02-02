@@ -146,5 +146,4 @@ This generates a **baseline vs modified** report with snapshots, screenshots, an
 Exploratory testing is destructive by nature.
 
 *   **Destructive Actions:** The agent will create content, change configurations, and click buttons. Do not run on Production without strict guardrails.
-*   **Idempotency:** The integration script creates a label named "Legal Tone." If run twice, Drupal may throw a "Label already exists" error. You may need to reset your database between runs.
 *   **CKEditor / Body Fields:** Standard Drupal replaces the "Body" textarea with a Rich Text Editor. If the agent cannot find label "Body", you may need to instruct it to click the "Source" button in the editor toolbar first.

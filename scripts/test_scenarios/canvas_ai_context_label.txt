@@ -26,7 +26,7 @@ find role button click --name "Add context label"
 wait --load networkidle
 
 # Fill fields (adjust labels to your form)
-find label "Label name" fill "Legal Tone"
+find label "Label name" fill "Test Label"
 find label "Description" fill "Respond in formal legal language"
 
 # Save (adjust to "Save" / "Save configuration")
@@ -43,6 +43,6 @@ screenshot 04_article_form.png
 
 # Verify the new label appears somewhere (sidebar/select/options)
 # If your UI renders it as an option, waiting on the label text is a cheap assertion:
-expect --text "Legal Tone"
+expect --text "Test Label"
 snapshot ai_label_visible
 screenshot 05_ai_label_visible.png
