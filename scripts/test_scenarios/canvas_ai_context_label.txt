@@ -1,0 +1,48 @@
+# Canvas AI Context Label Test (template)
+# Goal: verify that adding a Context Label is reflected in the UI (and/or affects AI output).
+#
+# NOTE:
+# - This script uses agent-browser semantic locators (find label / find role).
+# - You will likely need to tweak the exact button/field labels to match your module UI.
+
+# Login
+open /user/login
+wait --load networkidle
+find label "Username" fill "admin"
+find label "Password" fill "admin"
+find role button click --name "Log in"
+wait --load networkidle
+screenshot 01_logged_in.png
+
+# Navigate to Canvas AI settings
+open /admin/config/canvas-ai
+wait --load networkidle
+snapshot config_before
+screenshot 02_config_page.png
+
+# Add a new Context Label
+# (Adjust the button name if needed: e.g. "Add context label" / "Add label" / "+ Add")
+find role button click --name "Add context label"
+wait --load networkidle
+
+# Fill fields (adjust labels to your form)
+find label "Label name" fill "Legal Tone"
+find label "Description" fill "Respond in formal legal language"
+
+# Save (adjust to "Save" / "Save configuration")
+find role button click --name "Save"
+wait --load networkidle
+snapshot config_after
+screenshot 03_after_save.png
+
+# Create test content to verify the label is available
+open /node/add/article
+wait --load networkidle
+snapshot article_form
+screenshot 04_article_form.png
+
+# Verify the new label appears somewhere (sidebar/select/options)
+# If your UI renders it as an option, waiting on the label text is a cheap assertion:
+expect --text "Legal Tone"
+snapshot ai_label_visible
+screenshot 05_ai_label_visible.png

@@ -1,0 +1,2 @@
+# Required for YAML intent manifests
+PyYAML>=6.0

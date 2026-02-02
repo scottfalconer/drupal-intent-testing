@@ -1,0 +1,23 @@
+# Basic content creation (template)
+# Goal: create a Basic page and verify success message + content appears.
+
+open /user/login
+wait --load networkidle
+find label "Username" fill "admin"
+find label "Password" fill "admin"
+find role button click --name "Log in"
+wait --load networkidle
+screenshot 01_logged_in.png
+
+open /node/add/page
+wait --load networkidle
+find label "Title" fill "Intent test page"
+# Adjust label if body field label differs
+find label "Body" fill "This page was created by drupal-intent-testing."
+find role button click --name "Save"
+wait --load networkidle
+
+# Cheap assertions
+expect --text "has been created"
+screenshot 02_created.png
+snapshot after_create
